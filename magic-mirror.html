@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>魔镜魔镜 | Magic Mirror</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#6a11cb',
+            secondary: '#2575fc',
+            dark: '#121212',
+            light: '#f8f9fa',
+            accent: '#ff6b6b',
+          },
+          fontFamily: {
+            magic: ['Playfair Display', 'serif'],
+            sans: ['Inter', 'sans-serif'],
+          },
+          animation: {
+            'float': 'float 6s ease-in-out infinite',
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'glow': 'glow 2s ease-in-out infinite alternate',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' },
+            },
+            glow: {
+              '0%': { boxShadow: '0 0 5px rgba(106, 17, 203, 0.5)' },
+              '100%': { boxShadow: '0 0 20px rgba(106, 17, 203, 0.8), 0 0 30px rgba(37, 117, 252, 0.6)' },
+            }
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .text-shadow {
+        text-shadow: 0 0 8px rgba(106, 17, 203, 0.6);
+      }
+      .bg-magic-gradient {
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      }
+      .mirror-glass {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+      }
+      .mirror-border {
+        background: linear-gradient(145deg, #4a0d8e, #7c14f0);
+        box-shadow:  20px 20px 60px #3d0b75, 
+                    -20px -20px 60px #9317ff;
+      }
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-dark min-h-screen flex flex-col items-center justify-center p-4 font-sans text-light">
+  <!-- 装饰性背景元素 -->
+  <div class="fixed inset-0 -z-10 overflow-hidden">
+    <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/20 rounded-full filter blur-3xl animate-pulse-slow"></div>
+    <div class="absolute bottom-1/3 right-1/3 w-80 h-80 bg-secondary/20 rounded-full filter blur-3xl animate-pulse-slow" style="animation-delay: 2s;"></div>
+  </div>
+
+  <!-- 页面标题 -->
+  <header class="mb-8 text-center">
+    <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-magic font-bold bg-clip-text text-transparent bg-magic-gradient text-shadow">魔镜魔镜</h1>
+    <p class="text-light/70 mt-2 max-w-md mx-auto">问我任何问题，我会告诉你真相...</p>
+  </header>
+
+  <!-- 魔镜主体 -->
+  <main class="relative w-full max-w-md">
+    <!-- 镜框 -->
+    <div class="mirror-border rounded-full p-4 md:p-6 animate-float">
+      <!-- 镜面 -->
+      <div class="mirror-glass rounded-full aspect-square flex flex-col items-center justify-center overflow-hidden relative group">
+        <!-- 倒影效果 -->
+        <div class="absolute inset-0 bg-gradient-to-b from-dark/40 to-primary/10 pointer-events-none"></div>
+        
+        <!-- 魔镜内容 -->
+        <div class="z-10 w-full h-full flex flex-col items-center justify-center p-8 text-center">
+          <!-- 初始状态 -->
+          <div id="initial-state" class="transition-opacity duration-1000">
+            <i class="fa fa-magic text-[clamp(3rem,8vw,5rem)] text-primary mb-6 animate-pulse-slow"></i>
+            <p class="text-xl md:text-2xl font-magic mb-4">我是你的魔镜</p>
+            <p class="text-light/70 max-w-xs mx-auto">在下方输入框中输入你的问题，然后点击"提问"按钮</p>
+          </div>
+          
+          <!-- 思考状态 -->
+          <div id="thinking-state" class="hidden transition-opacity duration-1000">
+            <div class="flex justify-center mb-6">
+              <div class="w-3 h-3 rounded-full bg-primary mx-1 animate-bounce"></div>
+              <div class="w-3 h-3 rounded-full bg-primary mx-1 animate-bounce" style="animation-delay: 0.2s"></div>
+              <div class="w-3 h-3 rounded-full bg-primary mx-1 animate-bounce" style="animation-delay: 0.4s"></div>
+            </div>
+            <p class="text-xl font-magic">让我想想...</p>
+          </div>
+          
+          <!-- 回答状态 -->
+          <div id="answer-state" class="hidden transition-opacity duration-1000">
+            <div class="mb-6">
+              <i class="fa fa-star text-primary"></i>
+              <i class="fa fa-star text-primary mx-2"></i>
+              <i class="fa fa-star text-primary"></i>
+            </div>
+            <p id="answer-text" class="text-xl md:text-2xl font-magic mb-4"></p>
+            <button id="new-question-btn" class="mt-4 px-4 py-2 rounded-full bg-primary/20 hover:bg-primary/30 transition-all duration-300 text-light border border-primary/50">
+              问新问题
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 输入区域 -->
+    <div class="mt-8 mirror-glass rounded-xl p-4 w-full">
+      <div class="flex items-center">
+        <input 
+          type="text" 
+          id="question-input" 
+          placeholder="输入你的问题..." 
+          class="flex-1 bg-transparent border-none outline-none text-light placeholder-light/50 pr-4"
+        >
+        <button 
+          id="ask-btn" 
+          class="bg-magic-gradient text-light rounded-full px-6 py-2 hover:opacity-90 transition-all duration-300 flex items-center shadow-lg animate-glow"
+        >
+          <i class="fa fa-question-circle mr-2"></i>
+          <span>提问</span>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="mt-12 text-center text-light/50 text-sm">
+    <p>魔镜魔镜 &copy; 2025 | 用爱与魔法制作</p>
+  </footer>
+
+  <script>
+    // 预设的魔镜回答
+    const answers = [
+      "是的，毫无疑问。",
+      "不，不要指望它。",
+      "未来是模糊的，再问一次。",
+      "集中精力再问一次。",
+      "最好现在不要告诉你。",
+      "我的来源说不。",
+      "前景看好。",
+      "你可以指望它。",
+      "就像我看到的，是的。",
+      "很可能。",
+      "不能预测现在。",
+      "我的回答是否定的。",
+      "迹象表明是的。",
+      "不太可能。",
+      "肯定的。",
+      "对这个问题保持中立。",
+      "命运掌握在你自己手中。",
+      "时间会证明一切。",
+      "是的，只要你相信。",
+      "所有迹象都指向是。"
+    ];
+
+    // 获取DOM元素
+    const questionInput = document.getElementById('question-input');
+    const askBtn = document.getElementById('ask-btn');
+    const initialState = document.getElementById('initial-state');
+    const thinkingState = document.getElementById('thinking-state');
+    const answerState = document.getElementById('answer-state');
+    const answerText = document.getElementById('answer-text');
+    const newQuestionBtn = document.getElementById('new-question-btn');
+
+    // 提问功能
+    function askQuestion() {
+      const question = questionInput.value.trim();
+      
+      if (question === '') {
+        // 轻微震动效果提示用户输入问题
+        questionInput.classList.add('animate-shake');
+        setTimeout(() => {
+          questionInput.classList.remove('animate-shake');
+        }, 500);
+        return;
+      }
+      
+      // 显示思考状态
+      initialState.classList.add('opacity-0');
+      setTimeout(() => {
+        initialState.classList.add('hidden');
+        thinkingState.classList.remove('hidden');
+        setTimeout(() => {
+          thinkingState.classList.add('opacity-100');
+        }, 10);
+      }, 500);
+      
+      // 模拟思考时间（1-3秒）
+      const thinkingTime = 1000 + Math.random() * 2000;
+      setTimeout(() => {
+        // 选择随机回答
+        const randomAnswer = answers[Math.floor(Math.random() * answers.length)];
+        answerText.textContent = randomAnswer;
+        
+        // 显示回答状态
+        thinkingState.classList.remove('opacity-100');
+        setTimeout(() => {
+          thinkingState.classList.add('hidden');
+          answerState.classList.remove('hidden');
+          setTimeout(() => {
+            answerState.classList.add('opacity-100');
+          }, 10);
+        }, 500);
+      }, thinkingTime);
+    }
+
+    // 重置到初始状态
+    function resetToInitial() {
+      answerState.classList.remove('opacity-100');
+      setTimeout(() => {
+        answerState.classList.add('hidden');
+        initialState.classList.remove('hidden');
+        setTimeout(() => {
+          initialState.classList.add('opacity-100');
+        }, 10);
+      }, 500);
+    }
+
+    // 添加事件监听器
+    askBtn.addEventListener('click', askQuestion);
+    questionInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        askQuestion();
+      }
+    });
+    newQuestionBtn.addEventListener('click', () => {
+      questionInput.value = '';
+      resetToInitial();
+    });
+
+    // 添加轻微的玻璃脉动效果
+    const mirror = document.querySelector('.mirror-glass');
+    setInterval(() => {
+      const hueRotate = Math.floor(Math.random() * 10) - 5; // -5 到 4 之间的随机数
+      mirror.style.filter = `hue-rotate(${hueRotate}deg)`;
+    }, 2000);
+  </script>
+</body>
+</html>
+    
